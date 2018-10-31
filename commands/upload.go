@@ -3,7 +3,9 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 
+	"github.com/gaw508/new-relic-insights/newrelic"
 	"github.com/urfave/cli"
 )
 
@@ -23,9 +25,22 @@ func Upload(c *cli.Context) error {
 		return errors.New("missing input path")
 	}
 
-	fmt.Printf("Downloading dashboard '%s' to '%s' \n", dashboardId, inputPath)
+	fmt.Printf("Uploading dashboard '%s' to '%s' \n", dashboardId, inputPath)
 
-	// TODO
+	data, err := ioutil.ReadFile(inputPath)
+	if err != nil {
+		return errors.New(fmt.Sprintf("failed to read file '%s': %+v", inputPath, err))
+	}
+
+	newRelic, err := newrelic.CreateClient(apiKey)
+	if err != nil {
+		return errors.New(fmt.Sprintf("failed to create new relic client: %+v", err))
+	}
+
+	err = newRelic.UpdateDashboard(dashboardId, data)
+	if err != nil {
+		return errors.New(fmt.Sprintf("failed to update dashboard '%s': %+v", dashboardId, err))
+	}
 
 	fmt.Println("Complete")
 	return nil

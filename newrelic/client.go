@@ -2,13 +2,14 @@ package newrelic
 
 import (
 	"bytes"
-	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 )
 
-const insightsBaseUrl = "https://api.newrelic.com/"
+const insightsBaseUrl = "https://api.eu.newrelic.com/" // TODO: Configurable
 const userAgent = "insights-client/0.1.0"
 
 type Client struct {
@@ -33,17 +34,13 @@ func CreateClient(adminApiKey string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) newRequest(method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) newRequest(method, path string, body []byte) (*http.Request, error) {
 	rel := &url.URL{Path: path}
 	u := c.BaseURL.ResolveReference(rel)
 
 	var buf io.ReadWriter
 	if body != nil {
-		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
-		}
+		buf = bytes.NewBuffer(body)
 	}
 
 	req, err := http.NewRequest(method, u.String(), buf)
@@ -62,9 +59,20 @@ func (c *Client) newRequest(method, path string, body interface{}) (*http.Reques
 }
 
 func (c *Client) do(req *http.Request) (*http.Response, error) {
+	debug(httputil.DumpRequestOut(req, true))
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	debug(httputil.DumpResponse(resp, true))
 	return resp, nil
+}
+
+// TODO: Verbose logging
+func debug(data []byte, err error) {
+	if err == nil {
+		fmt.Printf("\n%s\n", data)
+	} else {
+		fmt.Printf("\n%s\n", err)
+	}
 }

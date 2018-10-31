@@ -29,12 +29,12 @@ func Download(c *cli.Context) error {
 
 	newRelic, err := newrelic.CreateClient(apiKey)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to create new relic client: %+v", err))
+		return errors.New(fmt.Sprintf("failed to create new relic client: %+v", err))
 	}
 
 	dashboard, err := newRelic.GetDashboard(dashboardId)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to get dashboard '%s': %+v", dashboardId, err))
+		return errors.New(fmt.Sprintf("failed to get dashboard '%s': %+v", dashboardId, err))
 	}
 
 	ioutil.WriteFile(outputPath, dashboard, 0755)

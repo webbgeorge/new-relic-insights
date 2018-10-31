@@ -20,6 +20,10 @@ func main() {
 			Usage:  "New Relic Insights API key",
 			EnvVar: "NEW_RELIC_INSIGHTS_API_KEY",
 		},
+		cli.BoolFlag{
+			Name:  "verbose, v",
+			Usage: "Verbose output",
+		},
 	}
 
 	app.Commands = []cli.Command{
@@ -53,9 +57,7 @@ func main() {
 					Usage: "path of input file for dashboard JSON",
 				},
 			},
-			Action: func(c *cli.Context) error {
-				return nil
-			},
+			Action: commands.Upload,
 		},
 	}
 
