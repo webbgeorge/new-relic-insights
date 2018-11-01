@@ -2,11 +2,11 @@ package newrelic
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"github.com/sirupsen/logrus"
 )
 
 const insightsBaseUrl = "https://api.eu.newrelic.com/" // TODO: Configurable
@@ -18,9 +18,10 @@ type Client struct {
 	AdminApiKey string
 
 	httpClient *http.Client
+	logger     *logrus.Logger
 }
 
-func CreateClient(adminApiKey string) (*Client, error) {
+func CreateClient(adminApiKey string, logger *logrus.Logger) (*Client, error) {
 	baseUrl, err := url.Parse(insightsBaseUrl)
 	if err != nil {
 		return nil, err
@@ -31,6 +32,7 @@ func CreateClient(adminApiKey string) (*Client, error) {
 		UserAgent:   userAgent,
 		AdminApiKey: adminApiKey,
 		httpClient:  http.DefaultClient,
+		logger:      logger,
 	}, nil
 }
 
@@ -59,20 +61,19 @@ func (c *Client) newRequest(method, path string, body []byte) (*http.Request, er
 }
 
 func (c *Client) do(req *http.Request) (*http.Response, error) {
-	debug(httputil.DumpRequestOut(req, true))
+	c.debug(httputil.DumpRequestOut(req, true))
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
-	debug(httputil.DumpResponse(resp, true))
+	c.debug(httputil.DumpResponse(resp, true))
 	return resp, nil
 }
 
-// TODO: Verbose logging
-func debug(data []byte, err error) {
+func (c *Client) debug(data []byte, err error) {
 	if err == nil {
-		fmt.Printf("\n%s\n", data)
+		c.logger.Debugf("\n%s\n", data)
 	} else {
-		fmt.Printf("\n%s\n", err)
+		c.logger.Debugf("\n%s\n", err)
 	}
 }

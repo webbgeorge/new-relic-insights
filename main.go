@@ -1,11 +1,12 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/gaw508/new-relic-insights/commands"
 	"github.com/urfave/cli"
+	"github.com/sirupsen/logrus"
+	"github.com/gaw508/new-relic-insights/cli_logger"
 )
 
 func main() {
@@ -14,6 +15,10 @@ func main() {
 	app.HelpName = "nrinsights"
 	app.Usage = "New Relic Insights CLI"
 	app.Version = "0.1.0"
+	cli.VersionFlag = cli.BoolFlag{
+		Name: "version",
+		Usage: "print only the version",
+	}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "apiKey, k",
@@ -24,6 +29,15 @@ func main() {
 			Name:  "verbose, v",
 			Usage: "Verbose output",
 		},
+	}
+
+	logger := logrus.New()
+	logger.SetFormatter(cli_logger.Formatter{})
+	app.Before = func(c *cli.Context) error {
+		if c.Bool("verbose") {
+			logger.SetLevel(logrus.DebugLevel)
+		}
+		return nil
 	}
 
 	app.Commands = []cli.Command{
@@ -41,7 +55,7 @@ func main() {
 					Usage: "path of output file for dashboard JSON",
 				},
 			},
-			Action: commands.Download,
+			Action: commands.Download(logger),
 		},
 		{
 			Name:    "upload",
@@ -57,12 +71,12 @@ func main() {
 					Usage: "path of input file for dashboard JSON",
 				},
 			},
-			Action: commands.Upload,
+			Action: commands.Upload(logger),
 		},
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 }
