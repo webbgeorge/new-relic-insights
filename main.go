@@ -3,10 +3,10 @@ package main
 import (
 	"os"
 
-	"github.com/gaw508/new-relic-insights/commands"
-	"github.com/urfave/cli"
 	"github.com/sirupsen/logrus"
-	"github.com/gaw508/new-relic-insights/cli_logger"
+	"github.com/urfave/cli"
+	"github.com/webbgeorge/new-relic-insights/cli_logger"
+	"github.com/webbgeorge/new-relic-insights/commands"
 )
 
 func main() {
@@ -25,6 +25,11 @@ func main() {
 			Usage:  "New Relic Insights API key",
 			EnvVar: "NEW_RELIC_INSIGHTS_API_KEY",
 		},
+		cli.StringFlag{
+			Name:   "region, r",
+			Usage:  "New Relic Insights API region",
+			EnvVar: "NEW_RELIC_INSIGHTS_API_REGION",
+		},
 		cli.BoolFlag{
 			Name:  "verbose, v",
 			Usage: "Verbose output",
@@ -42,36 +47,51 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:    "download",
-			Aliases: []string{"dl"},
-			Usage:   "download a New Relic Insights dashboard as JSON",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "dashboardId, d",
-					Usage: "id of the dashboard to download",
+			Name:        "dashboard",
+			Usage:       "options for dashboards",
+			Subcommands: []cli.Command{
+				{
+					Name:    "get",
+					Usage:   "get dashboard as JSON file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "dashboardId, d",
+							Usage: "id of the dashboard",
+						},
+						cli.StringFlag{
+							Name:  "output, o",
+							Usage: "path of output file for dashboard JSON",
+						},
+					},
+					Action: commands.GetDashboard(logger),
 				},
-				cli.StringFlag{
-					Name:  "output, o",
-					Usage: "path of output file for dashboard JSON",
+				{
+					Name:    "create",
+					Usage:   "create a new dashboard from JSON file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "input, i",
+							Usage: "path of input file for dashboard JSON",
+						},
+					},
+					Action: commands.CreateDashboard(logger),
+				},
+				{
+					Name:    "update",
+					Usage:   "update dashboard from JSON file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "dashboardId, d",
+							Usage: "id of the dashboard to update",
+						},
+						cli.StringFlag{
+							Name:  "input, i",
+							Usage: "path of input file for dashboard JSON",
+						},
+					},
+					Action: commands.UpdateDashboard(logger),
 				},
 			},
-			Action: commands.Download(logger),
-		},
-		{
-			Name:    "upload",
-			Aliases: []string{"ul"},
-			Usage:   "update a New Relic Insights dashboard using JSON",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "dashboardId, d",
-					Usage: "id of the dashboard to download",
-				},
-				cli.StringFlag{
-					Name:  "input, i",
-					Usage: "path of input file for dashboard JSON",
-				},
-			},
-			Action: commands.Upload(logger),
 		},
 	}
 

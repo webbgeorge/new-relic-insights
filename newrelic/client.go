@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
 	"github.com/sirupsen/logrus"
 )
 
-const insightsBaseUrl = "https://api.eu.newrelic.com/" // TODO: Configurable
 const userAgent = "insights-client/0.1.0"
 
 type Client struct {
@@ -21,7 +21,13 @@ type Client struct {
 	logger     *logrus.Logger
 }
 
-func CreateClient(adminApiKey string, logger *logrus.Logger) (*Client, error) {
+func CreateClient(adminApiKey string, region string, logger *logrus.Logger) (*Client, error) {
+	insightsBaseUrl := "https://api.newrelic.com/"
+	switch region {
+	case "eu":
+		insightsBaseUrl = "https://api.eu.newrelic.com/"
+	}
+
 	baseUrl, err := url.Parse(insightsBaseUrl)
 	if err != nil {
 		return nil, err
